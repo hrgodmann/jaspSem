@@ -435,18 +435,30 @@ ModeratedNonLinearFactorAnalysisInternal <- function(jaspResults, dataset, optio
     return()
   }
 
-  fitPerGroupTable$addColumnInfo(name = "N",      title = gettext("N"),     type = "integer")
-  fitPerGroupTable$addColumnInfo(name = "chisq",  title = "\u03a7\u00b2",   type = "number")
-  fitPerGroupTable$addColumnInfo(name = "df",     title = gettext("df"),    type = "integer")
-  fitPerGroupTable$addColumnInfo(name = "pvalue", title = gettext("p"),     type = "pvalue")
-  fitPerGroupTable$addColumnInfo(name = "rmsea",  title = gettext("RMSEA"), type = "number")
-  fitPerGroupTable$addColumnInfo(name = "cfi",    title = gettext("CFI"),   type = "number")
-  fitPerGroupTable$addColumnInfo(name = "srmr",   title = gettext("SRMR"),  type = "number")
+  # Continuous indicators (ML): the standard test and the indices based on it. Ordinal indicators (WLSMV): the scaled
+  # and shifted test and the robust RMSEA and CFI for categorical data (Savalei, 2021), taken from the same fits. The
+  # unscaled DWLS statistic and the RMSEA and CFI based on it indicate much better fit with categorical data than the
+  # same data would give uncategorized (Xia & Yang, 2019; Savalei, 2021).
+  categorical <- length(ordered) > 0
+  titles      <- c(N      = gettext("N"),
+                   chisq  = if (categorical) gettext("\u03a7\u00b2 (scaled)") else "\u03a7\u00b2",
+                   df     = gettext("df"),
+                   pvalue = gettext("p"),
+                   rmsea  = if (categorical) gettext("RMSEA (robust)") else gettext("RMSEA"),
+                   cfi    = if (categorical) gettext("CFI (robust)") else gettext("CFI"),
+                   srmr   = gettext("SRMR"))
+  fitPerGroupTable$addColumnInfo(name = "N",      title = titles[["N"]],      type = "integer")
+  fitPerGroupTable$addColumnInfo(name = "chisq",  title = titles[["chisq"]],  type = "number")
+  fitPerGroupTable$addColumnInfo(name = "df",     title = titles[["df"]],     type = "integer")
+  fitPerGroupTable$addColumnInfo(name = "pvalue", title = titles[["pvalue"]], type = "pvalue")
+  fitPerGroupTable$addColumnInfo(name = "rmsea",  title = titles[["rmsea"]],  type = "number")
+  fitPerGroupTable$addColumnInfo(name = "cfi",    title = titles[["cfi"]],    type = "number")
+  fitPerGroupTable$addColumnInfo(name = "srmr",   title = titles[["srmr"]],   type = "number")
 
-  # The statistics stay as computed for continuous indicators; with ordinal indicators a footnote explains their
-  # meaning.
-  if (length(ordered) > 0)
-    fitPerGroupTable$addFootnote(gettext("With ordinal indicators, lavaan estimates the model by WLSMV; \u03c7\u00b2 is its unscaled (DWLS) statistic, for which no p-value is computed, and RMSEA and CFI are based on it."))
+  if (categorical) {
+    fitPerGroupTable$addFootnote(gettext("With ordinal indicators, lavaan estimates the model by WLSMV. \u03a7\u00b2 is the scaled and shifted test statistic; RMSEA and CFI are the robust versions for categorical data, which approximate the values the data would give had they not been categorized."))
+    fitPerGroupTable$addCitation("Savalei, V. (2021). Improving fit indices in structural equation modeling with categorical data. Multivariate Behavioral Research, 56(3), 390-407.")
+  }
 
   fillData <- data.frame(model = names(result))
   groupN <- unlist(lapply(result, function(x) x@SampleStats@nobs))
@@ -461,13 +473,25 @@ ModeratedNonLinearFactorAnalysisInternal <- function(jaspResults, dataset, optio
     return()
   }
 
+  if (categorical) {
+    measures <- c(chisq = "chisq.scaled", df = "df.scaled", pvalue = "pvalue.scaled", rmsea = "rmsea.robust",
+                  cfi = "cfi.robust", srmr = "srmr")
+    values   <- t(vapply(result, .mnlfaCategoricalGroupFit, numeric(length(measures)), measures = measures))
+    fillData[, names(measures)] <- values
+    # A measure lavaan cannot compute (e.g. the robust RMSEA when its computation fails) stays empty, with a note.
+    for (i in seq_len(nrow(fillData))) {
+      notComputed <- names(measures)[is.na(values[i, ])]
+      if (length(notComputed) > 0)
+        fitPerGroupTable$addFootnote(gettextf("Group %1$s: %2$s could not be computed.", fillData$model[i],
+                                              paste(titles[notComputed], collapse = ", ")))
+    }
+    fitPerGroupTable$setData(fillData)
+    return()
+  }
+
   chisqs <- unlist(lapply(result, function(x) x@test[[1]]$stat.group))
   dfs <- unlist(lapply(result, function(x) x@test[[1]]$df))
   pvalues <- unlist(lapply(result, function(x) x@test[[1]]$pvalue))
-  # The footnote above says that no p-value is computed for the unscaled DWLS test; keep it so whatever the
-  # lavaan version reports.
-  if (length(ordered) > 0)
-    pvalues <- rep(NA_real_, length(chisqs))
   fits <- sapply(result, function(x) lavaan::fitmeasures(x)[c("rmsea", "cfi", "srmr")])
 
   fillData$chisq <- chisqs
@@ -478,6 +502,16 @@ ModeratedNonLinearFactorAnalysisInternal <- function(jaspResults, dataset, optio
   fitPerGroupTable$setData(fillData)
 
   return()
+}
+
+# The fit measures `measures` of one group's categorical (WLSMV) fit, in that order; a measure lavaan does not report
+# or cannot compute is NA. lavaan's warnings about such measures are muffled: the table notes the empty cells.
+.mnlfaCategoricalGroupFit <- function(fit, measures) {
+  all <- tryCatch(withCallingHandlers(lavaan::fitmeasures(fit),
+                                      warning = function(w) invokeRestart("muffleWarning")),
+                  error = function(e) NULL)
+  values <- vapply(measures, function(m) if (m %in% names(all)) as.numeric(all[[m]]) else NA_real_, numeric(1))
+  return(unname(values))
 }
 
 ##### HELPER #####
