@@ -122,7 +122,7 @@
   if (!nzchar(key) || !key %in% names(models)) {
     reason <- gettext("No factor scores were saved: select an enabled model for the factor scores.")
   } else if (length(models[[key]][["errors"]]) > 0) {
-    reason <- gettextf("No factor scores were saved: model %s is refused; the reason is shown in the table 'Model Fit (MoFIA)'.", label)
+    reason <- gettextf("No factor scores were saved: model %s is refused; the reason is shown in the table 'Global Invariance Fit'.", label)
   } else if (is.null(fits[[key]])) {
     reason <- gettextf("No factor scores were saved: model %s has not been fitted.", label)
   } else {

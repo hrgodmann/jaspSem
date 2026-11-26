@@ -574,7 +574,7 @@
   if (!key %in% names(models))
     return(fail(gettextf("Model %s is not enabled.", label)))
   if (length(models[[key]][["errors"]]) > 0)
-    return(fail(gettextf("Model %s is refused and has no estimates; the reason is shown in the table 'Model Fit (MoFIA)'.",
+    return(fail(gettextf("Model %s is refused and has no estimates; the reason is shown in the table 'Global Invariance Fit'.",
                          label)))
   if (is.null(fits[[key]]))
     return(fail(gettextf("Model %s has not been fitted. Check 'Sync Analysis'.", label)))

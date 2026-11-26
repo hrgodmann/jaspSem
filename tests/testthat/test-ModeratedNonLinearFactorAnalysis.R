@@ -110,10 +110,9 @@ test_that("Continuous items, Configural and Metric, default SEs: fit table, load
   jaspTools::expect_equal_tables(fitTable(results),
     list(2, 6482.1855371198, 7080.905219186, "", "", "", 6182.1855371198,
         "Configural", 150, "", 6664.11324796318, 6604.94527586046, "",
-        "", "", 2, 6441.39848656829, 6920.37423222124, "Configural",
+        "", 2, 6441.39848656829, 6920.37423222124, "Configural",
         30, 19.2129494484834, 6201.39848656829, "Metric", 120, 0.936374783964641,
-        6545.48450807366, 6539.60627756081, 1.00223526630851, 19.1700991716742,
-        "SB2001"))
+        6545.48450807366, 6539.60627756081, 1.00223526630851, 19.1700991716742))
   jaspTools::expect_equal_tables(parameterTable(results, "invarianceTestMetric", "loadings"),
     list("Baseline", 0.877785178151725, "Factor 1", "y1", 0.762350894768247,
         3.10635767837288e-50, 0.0588961247727043, 0.993219461535203,
@@ -172,10 +171,9 @@ test_that("Continuous items, the other two standard-error choices: same estimate
   jaspTools::expect_equal_tables(fitTable(reduced),
     list(2, 6482.1855371198, 7080.905219186, "", "", "", 6182.1855371198,
         "Configural", 150, "", 6664.11324796318, 6604.94527586046, "",
-        "", "", 2, 6441.39848656829, 6920.37423222124, "Configural",
+        "", 2, 6441.39848656829, 6920.37423222124, "Configural",
         30, 19.2129494484834, 6201.39848656829, "Metric", 120, 0.932261390958454,
-        6545.48450807366, 6539.60627756081, 0.99266232498308, 19.3549699277757,
-        "SB2001"))
+        6545.48450807366, 6539.60627756081, 0.99266232498308, 19.3549699277757))
   jaspTools::expect_equal_tables(parameterTable(reduced, "invarianceTestMetric", "loadings"),
     list("Baseline", 0.877785178151725, "Factor 1", "y1", 0.762817384132897,
         1.25396447949199e-50, 0.0586581156213479, 0.992752972170553,
@@ -197,9 +195,9 @@ test_that("Continuous items, the other two standard-error choices: same estimate
   jaspTools::expect_equal_tables(fitTable(standard),
     list(2, 6482.1855371198, 7080.905219186, "", "", "", 6182.1855371198,
         "Configural", 150, "", 6664.11324796318, 6604.94527586046, "",
-        "", "", 2, 6441.39848656829, 6920.37423222124, "Configural",
+        "", 2, 6441.39848656829, 6920.37423222124, "Configural",
         30, 19.2129494484834, 6201.39848656829, "Metric", 120, 0.935436699670949,
-        6545.48450807366, 6539.60627756081, "", 19.2129494484834, "LR"))
+        6545.48450807366, 6539.60627756081, "", 19.2129494484834))
   jaspTools::expect_equal_tables(parameterTable(standard, "invarianceTestMetric", "loadings"),
     list("Baseline", 0.877785178151725, "Factor 1", "y1", 0.74994384734715,
         2.78092154025675e-41, 0.0652263673276503, 1.0056265089563, 13.4575205413842,
@@ -237,10 +235,9 @@ test_that("Ordinal items with the probit link: fit table, thresholds and a thres
   jaspTools::expect_equal_tables(fitTable(results),
     list(2, 2746.38168616274, 2862.13415802887, "", "", "", 2688.38168616274,
         "Configural", 29, "", 2751.08438886544, 2770.1152356526, "",
-        "", "", 2, 2734.90980406183, 2818.7305595511, "Configural",
+        "", 2, 2734.90980406183, 2818.7305595511, "Configural",
         8, 4.5281178990881, 2692.90980406183, "Scalar", 21, 0.805264603418458,
-        2737.35424850627, 2752.09616748552, 0.997048270968194, 4.54152324509928,
-        "SB2001"))
+        2737.35424850627, 2752.09616748552, 0.997048270968194, 4.54152324509928))
   jaspTools::expect_equal_tables(parameterTable(results, "invarianceTestScalar", "intercepts"),
     list("Threshold 1 (1 | 2)", -4.11514077251821, "o1", -5.30755779150589,
         1.34218321453221e-11, 0.608387209353497, -2.92272375353053,
@@ -290,8 +287,7 @@ test_that("Nominal moderator and missing moderator values: cases excluded with a
   results <- runMnlfa(data, options)
   jaspTools::expect_equal_tables(fitTable(results),
     list(2, 6351.60508420933, 6606.57700617331, "", "", "", 6223.60508420933,
-        "Scalar", 64, "", 6376.66532517319, 6403.50316974801, "", "",
-        ""))
+        "Scalar", 64, "", 6376.66532517319, 6403.50316974801, "", ""))
   jaspTools::expect_equal_tables(parameterTable(results, "invarianceTestScalar", "factorMeans"),
     list("Baseline", 0, "Factor 1", "", "", "", "", "", "Age", 0.101873902825831,
         "Factor 1", -0.00292031570678503, 0.0567351897381743, 0.0534674205032439,
@@ -324,8 +320,7 @@ test_that("Custom model: the ticked boxes are fitted; a model that is not identi
                                               variances = TRUE)))
   jaspTools::expect_equal_tables(fitTable(fitted),
     list(1, 3241.21488059776, 3305.07831335149, "", "", "", 3209.21488059776,
-        "Custom", 16, "", 3242.63524613301, 3254.3092527301, "", "",
-        ""))
+        "Custom", 16, "", 3242.63524613301, 3254.3092527301, "", ""))
   jaspTools::expect_equal_tables(parameterTable(fitted, "invarianceTestCustom", "loadings"),
     list("Baseline", 0.812634741136868, "Factor 1", "y1", 0.738589862902537,
         1.2443132851639e-102, 0.0377786932915032, 0.886679619371199,
@@ -342,7 +337,7 @@ test_that("Custom model: the ticked boxes are fitted; a model that is not identi
   refused <- runMnlfa(data, custom(customModel(items, loadings = character(0), intercepts = items, means = TRUE,
                                                variances = FALSE)))
   jaspTools::expect_equal_tables(fitTable(refused),
-    list(1, "", "", "", "", "", "", "Custom", "", "", "", "", "", "", ""))
+    list(1, "", "", "", "", "", "", "Custom", "", "", "", "", "", ""))
   reason <- paste("Model Custom is not identified: the mean of factor 'Factor 1' and the intercepts or thresholds",
                   "of all its indicators depend on the moderators (Age), and a shift of the mean is offset exactly by",
                   "shifts of the intercepts or thresholds. Keep at least one anchor indicator (leave its intercepts",
@@ -376,9 +371,8 @@ test_that("An analysis saved with jaspSem 0.97.1 (OpenMx) opens and is refitted 
   jaspTools::expect_equal_tables(fitTable(results),
     list(1, 3308.66373021817, 3596.04917760995, "", "", "", 3164.66373021817,
         "Configural", 72, "", 3340.810519209, 3367.58840481369, "",
-        "", "", 1, 3287.3230038381, 3514.83648302325, "", "", "", 3173.3230038381,
-        "Metric", 57, "", 3306.65633717143, 3333.97170455955, "", "",
-        ""))
+        "", 1, 3287.3230038381, 3514.83648302325, "", "", "", 3173.3230038381,
+        "Metric", 57, "", 3306.65633717143, 3333.97170455955, "", ""))
   jaspTools::expect_equal_tables(parameterTable(results, "invarianceTestMetric", "loadings"),
     list("Baseline", 0.817627218680242, "Factor 1", "y1", 0.690817965810937,
         1.31580129653777e-36, 0.0646997872764803, 0.944436471549546,

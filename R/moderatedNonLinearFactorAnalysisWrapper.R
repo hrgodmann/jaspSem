@@ -24,7 +24,7 @@
 #' @param categoricalIndicatorLink, Link function for ordinal and binary indicators: logit (default) or probit. Available only when an ordinal indicator is assigned.
 #' @param checkModelFitPerGroup, Fit the measurement model separately in each group.
 #'    Defaults to \code{FALSE}.
-#' @param errorCalculationMethod, Standard errors for the parameter tables, likelihood-ratio tests and plot bands; changing them does not refit the models. Huber-White sandwich (default) uses the exact information matrix and scaled likelihood-ratio tests. The reduced-information variant is for comparison with other MNLFA software and is not robust to misspecification. Standard uses the inverse observed information and the unscaled likelihood-ratio test.
+#' @param errorCalculationMethod, Standard errors for the parameter tables, likelihood-ratio tests and plot bands; changing them does not refit the models. Huber-White sandwich (default) uses the exact information matrix and scaled likelihood-ratio tests: the Satorra-Bentler (2001) test, or its strictly positive 2010 version when the 2001 scaling factor is not positive. The reduced-information variant is for comparison with other MNLFA software and is not robust to misspecification. Standard uses the inverse observed information and the unscaled likelihood-ratio test.
 #' @param factorScoreColumnPrefix, Text placed before each factor title in the saved score column names.
 #' @param factorScoreModel, Model whose factor scores are saved (only if it converged).
 #' @param factorScoreSavedToData, Save expected a posteriori factor scores from the selected model. Scores include moderated factor means and variances; posterior standard deviations do not include parameter uncertainty.

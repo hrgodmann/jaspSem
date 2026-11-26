@@ -53,8 +53,12 @@
   if (!is.null(jaspResults[["mofiaEstimatesContainer"]]))
     jaspResults[["mofiaEstimatesContainer"]] <- NULL
 
-  notReady <- list(ready = FALSE)
-  if (!fitModels && is.null(jaspResults[["mofiaContainer"]]))
+  # The fit table is shown from the start, empty until it is filled at the end of this run. With Sync off and no valid
+  # output of an earlier synchronized run, nothing is shown from the cached states, so it stays empty until Sync is on.
+  notReady     <- list(ready = FALSE)
+  waitForSync  <- !fitModels && is.null(jaspResults[["mofiaContainer"]])
+  fillFitTable <- .mnlfaEmptyFitTable(jaspResults, options, waitForSync)
+  if (waitForSync)
     return(notReady)
 
   container <- jaspResults[["mofiaContainer"]]
@@ -100,7 +104,8 @@
 
   for (k in seq_along(models))
     .mnlfaMofiaModelMessages(container, models[[k]], fits[[names(models)[k]]], names(models)[k], k, options)
-  .mnlfaMofiaFitTable(jaspResults, spec, prepared, models, fits, options)
+  if (fillFitTable)
+    .mnlfaMofiaFitTable(jaspResults, spec, prepared, models, fits, options)
   .mnlfaMofiaParameterTables(jaspResults, spec, prepared, models, fits, options)
   .mnlfaMofiaPlots(jaspResults, spec, prepared, models, fits, options)
   .mnlfaMofiaSyntaxOutput(jaspResults, spec, prepared, models, options)
@@ -190,7 +195,7 @@
   if (length(toFit) == 0 || !fitModels)
     return(fits)
 
-  jaspBase::startProgressbar(length(toFit), label = gettext("Fitting the MoFIA models"))
+  jaspBase::startProgressbar(length(toFit), label = gettext("Fitting the MNLFA models"))
   for (key in toFit) {
     result <- .mnlfaFitModel(models[[key]][["mofiaModel"]], spec[["link"]])
     result[["signature"]] <- .mnlfaFitSignature(spec, key)
@@ -235,7 +240,7 @@
   if (!options[["showSyntax"]] || !is.null(jaspResults[["mofiaSyntaxContainer"]]))
     return()
 
-  syntaxContainer <- createJaspContainer(gettext("Model Syntax (MoFIA)"), initCollapsed = TRUE)
+  syntaxContainer <- createJaspContainer(gettext("Model Syntax"), initCollapsed = TRUE)
   syntaxContainer$dependOn(c(.mnlfaMofiaDisplayDeps, "showSyntax", "errorCalculationMethod"))
   syntaxContainer$position <- 103
   jaspResults[["mofiaSyntaxContainer"]] <- syntaxContainer
@@ -247,7 +252,7 @@
     key <- names(spec[["models"]])[k]
     if (length(spec[["models"]][[key]][["errors"]]) > 0) {
       # Invalid settings: no code, never a substitute model built from the readable rows.
-      html <- createJaspHtml(text = gettext("No code is shown: the moderation settings of this model are invalid (see the table 'Model Fit (MoFIA)')."),
+      html <- createJaspHtml(text = gettext("No code is shown: the moderation settings of this model are invalid (see the table 'Global Invariance Fit')."),
                              title = .mnlfaModelLabel(key))
     } else {
       refused <- length(models[[key]][["errors"]]) > 0

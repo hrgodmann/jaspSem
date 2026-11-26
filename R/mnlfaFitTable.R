@@ -31,7 +31,6 @@
   table$addColumnInfo(name = "deltaMinus2LL", title = "\u0394(\u22122LL)",       type = "number")
   table$addColumnInfo(name = "deltaDf",       title = "\u0394df",                type = "integer")
   table$addColumnInfo(name = "scalingFactor", title = gettext("Scaling factor"), type = "number")
-  table$addColumnInfo(name = "test",          title = gettext("Test"),           type = "string")
   table$addColumnInfo(name = "statistic",     title = gettext("Statistic"),      type = "number")
   table$addColumnInfo(name = "p",             title = "p",                       type = "pvalue")
   return()
@@ -39,17 +38,26 @@
 
 .mnlfaFitTableDeps <- function() c(.mnlfaMofiaDisplayDeps, "errorCalculationMethod", "warnings")
 
-# The empty fit table shown before indicators and moderators are assigned (replaces the legacy empty
-# "Global Invariance Fit" table).
-.mnlfaEmptyFitTable <- function(jaspResults) {
+#' The empty fit table
+#'
+#' Shown from the start, as other JASP analyses show their main table: before indicators and moderators are assigned
+#' (as the legacy OpenMx version of this table was), with Sync off, and while the models are fitted. It has
+#' the columns and one row per selected model. A table created in a run that fits or uses cached fits is replaced by the
+#' filled table at the end of that run (`.mnlfaMofiaFitTable`). With `waitForSync` (Sync off and no valid output of an
+#' earlier synchronized run) it also depends on the Sync box, so that checking the box rebuilds and fills it.
+#' Returns TRUE when the table was created in this run, FALSE when the table of an earlier run is kept.
+#' @noRd
+.mnlfaEmptyFitTable <- function(jaspResults, options, waitForSync = FALSE) {
   if (!is.null(jaspResults[["mofiaFitTable"]]))
-    return()
-  table <- createJaspTable(gettext("Model Fit (MoFIA)"))
-  table$dependOn(.mnlfaFitTableDeps())
+    return(FALSE)
+  table <- createJaspTable(gettext("Global Invariance Fit"))
+  table$dependOn(c(.mnlfaFitTableDeps(), if (waitForSync) "syncAnalysisBox"))
   table$position <- 101
-  jaspResults[["mofiaFitTable"]] <- table
   .mnlfaFitTableColumns(table)
-  return()
+  for (key in .mnlfaModelKeys[vapply(.mnlfaModelKeys, function(key) options[[key]], logical(1))])
+    table$addRows(.mnlfaEmptyFitRow(.mnlfaModelLabel(key)), rowNames = key)
+  jaspResults[["mofiaFitTable"]] <- table
+  return(TRUE)
 }
 
 #' The fit table
@@ -58,13 +66,11 @@
 #' every fitted model; information criteria only for converged and not-converged fits; refused models show their
 #' refusal messages and every model its identification warnings as footnotes of its row. Comparisons: see
 #' `.mnlfaComparisonPartners()` and `.mnlfaSelectTest()`. The table is rebuilt from the cached fits when the SE choice
-#' or a display option changes; it never fits.
+#' or a display option changes; it never fits. It replaces the empty table that `.mnlfaEmptyFitTable()` created earlier
+#' in the same run; the caller builds it only then.
 #' @noRd
 .mnlfaMofiaFitTable <- function(jaspResults, spec, prepared, models, fits, options) {
-  if (!is.null(jaspResults[["mofiaFitTable"]]))
-    return()
-
-  table <- createJaspTable(gettext("Model Fit (MoFIA)"))
+  table <- createJaspTable(gettext("Global Invariance Fit"))
   table$dependOn(.mnlfaFitTableDeps())
   table$position <- 101
   jaspResults[["mofiaFitTable"]] <- table
@@ -119,7 +125,6 @@
     rows[[key]][["deltaMinus2LL"]] <- -2 * fit0[["loglik"]] - (-2 * fit1[["loglik"]])
     rows[[key]][["deltaDf"]]       <- as.integer(fit1[["npar"]] - fit0[["npar"]])
     rows[[key]][["scalingFactor"]] <- result[["scalingFactor"]]
-    rows[[key]][["test"]]          <- result[["test"]]
     rows[[key]][["statistic"]]     <- result[["statistic"]]
     rows[[key]][["p"]]             <- result[["p"]]
     testNotes[[key]] <- .mnlfaTestFootnotes(result, .mnlfaModelLabel(key), .mnlfaModelLabel(larger),
@@ -131,10 +136,10 @@
     for (note in unique(notes[[key]]))
       table$addFootnote(note, colNames = "model", rowNames = key)
     for (note in unique(testNotes[[key]]))
-      table$addFootnote(note, colNames = "test", rowNames = key)
+      table$addFootnote(note, colNames = "statistic", rowNames = key)
   }
 
-  for (note in .mnlfaFitTableNotes(spec, prepared, anyComparison = any(!is.na(partners))))
+  for (note in .mnlfaFitTableNotes(spec, prepared, anyComparison = any(!is.na(partners)), seChoice))
     table$addFootnote(note)
   return()
 }
@@ -142,7 +147,7 @@
 .mnlfaEmptyFitRow <- function(label) {
   list(model = label, npar = NA_integer_, minus2LL = NA_real_, aic = NA_real_, saaic = NA_real_, bic = NA_real_,
        sabic = NA_real_, comparedWith = "", deltaMinus2LL = NA_real_, deltaDf = NA_integer_, scalingFactor = NA_real_,
-       test = "", statistic = NA_real_, p = NA_real_)
+       statistic = NA_real_, p = NA_real_)
 }
 
 #' Information criteria (formulas of the old `.mxSummaryFixed`)
@@ -183,11 +188,11 @@
 #' Satorra-Bentler (2001) scaled test; if its p-value is not finite, the 2010 version; if neither, no test
 #' ("none"). Never the unscaled test with a sandwich choice. Any `mofia_lrt` error gives no test and its
 #' message (`error`); MoFIA's warnings are kept (`warnings`). `lrt` is a seam for tests only.
-#' Returns `branch` ("LR", "SB2001", "SB2010", "none" or "error"), `test`, `statistic`, `scalingFactor`,
+#' Returns `branch` ("LR", "SB2001", "SB2010", "none" or "error"), `statistic`, `scalingFactor`,
 #' `df`, `p`, `error` and `warnings`.
 #' @noRd
 .mnlfaSelectTest <- function(fit0, fit1, seChoice, lrt = MoFIA::mofia_lrt) {
-  out <- list(branch = "error", test = "", statistic = NA_real_, scalingFactor = NA_real_,
+  out <- list(branch = "error", statistic = NA_real_, scalingFactor = NA_real_,
               df = as.integer(fit1[["npar"]] - fit0[["npar"]]), p = NA_real_, error = NULL, warnings = character(0))
   run <- function(...) {
     value <- tryCatch(
@@ -206,7 +211,7 @@
     r <- run(scaled = FALSE)
     if (inherits(r, "error"))
       return(out)
-    out[c("branch", "test")] <- list("LR", "LR")
+    out[["branch"]]    <- "LR"
     out[["statistic"]] <- r[["statistic"]][1]
     out[["p"]]         <- r[["p_value"]][1]
     return(out)
@@ -216,7 +221,7 @@
   if (inherits(r01, "error"))
     return(out)
   if (is.finite(r01[["p_value"]][1])) {
-    out[c("branch", "test")] <- list("SB2001", "SB2001")
+    out[["branch"]]        <- "SB2001"
     out[["statistic"]]     <- r01[["statistic"]][1]
     out[["scalingFactor"]] <- r01[["cd"]][1]
     out[["p"]]             <- r01[["p_value"]][1]
@@ -228,13 +233,13 @@
     return(out)
   row <- r10[r10[["test"]] == "Satorra-Bentler (2010)", , drop = FALSE]
   if (nrow(row) == 1 && is.finite(row[["p_value"]])) {
-    out[c("branch", "test")] <- list("SB2010", "SB2010")
+    out[["branch"]]        <- "SB2010"
     out[["statistic"]]     <- row[["statistic"]]
     out[["scalingFactor"]] <- row[["cd"]]
     out[["p"]]             <- row[["p_value"]]
     return(out)
   }
-  out[c("branch", "test")] <- list("none", gettext("none"))
+  out[["branch"]] <- "none"
   return(out)
 }
 
@@ -263,9 +268,10 @@
 #' General footnotes of the fit table
 #'
 #' Exclusions, the moderator coding (only the sentences of the moderator classes present), the scalar = strict note
-#' for categorical-only models and the meaning of the difference column.
+#' for categorical-only models, and the meaning of the difference column with the test of the SE choice `seChoice`
+#' (the rows that use the 2010 version or have no test say so in their own notes).
 #' @noRd
-.mnlfaFitTableNotes <- function(spec, prepared, anyComparison) {
+.mnlfaFitTableNotes <- function(spec, prepared, anyComparison, seChoice) {
   notes    <- character(0)
   excluded <- prepared[["nExcludedModerator"]] + prepared[["nExcludedResponse"]]
   if (length(excluded) == 1 && excluded > 0)
@@ -286,7 +292,10 @@
   }
 
   if (anyComparison)
-    notes <- c(notes, gettext("\u0394(\u22122LL) is the difference in \u22122 log-likelihood."))
+    notes <- c(notes, if (seChoice == "standard")
+      gettext("\u0394(\u22122LL) is the difference in \u22122 log-likelihood. Test: likelihood-ratio test; Statistic = \u0394(\u22122LL).")
+    else
+      gettext("\u0394(\u22122LL) is the difference in \u22122 log-likelihood. Test: Satorra-Bentler (2001) scaled likelihood-ratio test; Statistic = \u0394(\u22122LL) / Scaling factor."))
   return(notes)
 }
 

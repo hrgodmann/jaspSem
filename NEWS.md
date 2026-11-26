@@ -18,7 +18,7 @@
 # jaspSem (development version)
 
 ## Added
-* MNLFA: models are now estimated with the MoFIA package (marginal maximum likelihood with adaptive quadrature) instead of OpenMx/mxsem. The results are shown in the new **Model Fit (MoFIA)** table, the **Parameter Estimates** tables and the **Parameter Plots**.
+* MNLFA: models are now estimated with the MoFIA package (marginal maximum likelihood with adaptive quadrature) instead of OpenMx/mxsem. The results are shown in the **Global Invariance Fit** table, the **Parameter Estimates** tables and the **Parameter Plots**.
 * MNLFA: ordinal indicators (binary or ordered categories) are supported; **Categorical indicator link** chooses Logit (default) or Probit.
 * MNLFA: **Standard errors** (Estimation Options): Huber-White sandwich (default), Huber-White sandwich (reduced information), or Standard (from the inverse observed information). If the reduced information matrix of a model is not positive definite, that model shows its estimates without standard errors, confidence intervals, p-values or scaled tests, and a footnote gives the reason and points to the default standard errors.
 * MNLFA: **Save factor scores to data** adds one column per factor with the EAP scores of the chosen **Model** (name: **Column name prefix**, default `FS_`, followed by the factor title). Cases excluded from the analysis get empty cells. The scores include the moderated factor means and variances; their posterior standard deviation does not include the uncertainty of the parameter estimates. Scores are written only for a converged model.
@@ -44,7 +44,8 @@
 ## Changed
 * MNLFA: removed dead dependencies (`factorsUncorrelated`, `interceptsFixedToZero`, `packageMimiced`, `estimator`, `naAction`) from the main container — they were listed but never read anywhere in MNLFA code.
 * MNLFA: new defaults of the boxes under **Include Individual Moderations** (new analyses; saved analyses keep their boxes). Configural moderates every parameter except the loading and intercept (threshold) of each factor's anchor indicator, by default its first indicator; Metric also leaves the loadings unmoderated, Scalar also the intercepts, Strict also the residual variances; Custom starts with nothing moderated. The models are therefore nested.
-* MNLFA: the fit table compares each model with the smallest larger model in which it is nested. With a sandwich standard-error choice it shows the Satorra–Bentler (2001) scaled likelihood-ratio test, or the 2010 version when the 2001 scaling factor is not positive or not finite; if neither can be computed, no p-value is shown and a note says why. With Standard errors it shows the ordinary likelihood-ratio test. Models that are not nested get no test.
+* MNLFA: the fit table compares each model with the smallest larger model in which it is nested. With a sandwich standard-error choice it shows the Satorra–Bentler (2001) scaled likelihood-ratio test, or the 2010 version when the 2001 scaling factor is not positive or not finite; if neither can be computed, no p-value is shown and a note says why. With Standard errors it shows the ordinary likelihood-ratio test. A note under the table names the test. Models that are not nested get no test.
+* MNLFA: the **Global Invariance Fit** table is shown from the start, empty with one row per selected model: before the variables are assigned, while **Start/Sync Analysis** is unchecked, and while the models are being fitted.
 * MNLFA: continuous moderators are standardized on the analysed cases, so their effects are per standard deviation; moderators with two values (0/1) are used as coded; nominal moderators are dummy coded against their first level. Moderator terms are labelled, e.g., `Age`, `Age²`, `Age³`, `Gender (female)`, `Age × Gender (female)`.
 * MNLFA: **Indicator preprocessing** (Center / Z-standardize) applies only to continuous indicators and uses the mean and standard deviation of the analysed cases; ordinal indicators are never transformed.
 * MNLFA: variance tables show baseline values on the variance scale and moderation effects as multiplicative ratios; the test in a baseline variance row is of variance = 1. With two factors the factor correlation can be moderated (coefficients on the Fisher z scale); with three or more factors each pair has a constant correlation.
@@ -62,7 +63,7 @@
 * MNLFA: analyses saved with an earlier version have no standard-error choice, so they open with the new default, Huber-White sandwich. The earlier version reported standard errors from the inverse observed information: choose **Standard** under Estimation Options → **Standard errors** to get that type again. The estimates, −2LL and information criteria do not depend on this choice; standard errors, confidence intervals, p-values and the fit-table tests do.
 
 ## Removed
-* MNLFA: the OpenMx/mxsem code and the old **Global Invariance Fit**, parameter tables, plots and syntax; OpenMx and mxsem are no longer direct dependencies of jaspSem (OpenMx is still installed with semPlot, which the path diagrams of other analyses use).
+* MNLFA: the OpenMx/mxsem code and its versions of the **Global Invariance Fit** table, the parameter tables, plots and syntax (replaced by the MoFIA output); OpenMx and mxsem are no longer direct dependencies of jaspSem (OpenMx is still installed with semPlot, which the path diagrams of other analyses use).
 
 
 ---

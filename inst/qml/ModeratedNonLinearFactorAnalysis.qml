@@ -461,7 +461,7 @@ Form
 				{value: "robustHuberWhiteReducedInformation", label: qsTr("Huber-White sandwich (reduced information)")},
 				{value: "standard", label: qsTr("Standard")}
 			]
-			info: qsTr("Standard errors for the parameter tables, likelihood-ratio tests and plot bands; changing them does not refit the models. Huber-White sandwich (default) uses the exact information matrix and scaled likelihood-ratio tests. The reduced-information variant is for comparison with other MNLFA software and is not robust to misspecification. Standard uses the inverse observed information and the unscaled likelihood-ratio test.")
+			info: qsTr("Standard errors for the parameter tables, likelihood-ratio tests and plot bands; changing them does not refit the models. Huber-White sandwich (default) uses the exact information matrix and scaled likelihood-ratio tests: the Satorra-Bentler (2001) test, or its strictly positive 2010 version when the 2001 scaling factor is not positive. The reduced-information variant is for comparison with other MNLFA software and is not robust to misspecification. Standard uses the inverse observed information and the unscaled likelihood-ratio test.")
 		}
 
 		DropDown

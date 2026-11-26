@@ -31,8 +31,8 @@ ModeratedNonLinearFactorAnalysisInternal <- function(jaspResults, dataset, optio
 
   if (!hasModelSpec) {
 
-    # An empty MoFIA fit table replaces the legacy empty "Global Invariance Fit" table.
-    .mnlfaEmptyFitTable(jaspResults)
+    # The empty fit table, shown before anything is assigned (as in the legacy OpenMx version).
+    .mnlfaEmptyFitTable(jaspResults, options)
 
     syncText <- createJaspHtml(
       text = gettext("Specify both factor indicator variables and moderator variables to run the analysis.")
